@@ -155,9 +155,9 @@ An image cropper made with Polymer.
         }
       },
       _cropSpotlight: function() {
-        let x = Math.max(this.spotlight.x - this.spotlight.radius, 0);
-        let y = Math.max(this.spotlight.y - this.spotlight.radius, 0);
-        let d = this.spotlight.radius * 2;
+        var x = Math.max(this.spotlight.x - this.spotlight.radius, 0);
+        var y = Math.max(this.spotlight.y - this.spotlight.radius, 0);
+        var d = this.spotlight.radius * 2;
 
         if (x + d > this._img.width) {
           x = this._img.width - d;
@@ -166,11 +166,11 @@ An image cropper made with Polymer.
           y = this._img.height - d;
         }
 
-        let xr = this._img.width / this._imgData.newWidth;
-        let yr = this._img.height / this._imgData.newHeight;
+        var xr = this._img.width / this._imgData.newWidth;
+        var yr = this._img.height / this._imgData.newHeight;
         this.$.crop.width = d;
         this.$.crop.height = d;
-        let ctx = this.$.crop.getContext('2d');
+        var ctx = this.$.crop.getContext('2d');
         ctx.drawImage(this._img, x*xr,y*yr,d,d,0,0,this.$.crop.width,this.$.crop.height)
         return this.$.crop.toDataURL();
         //this._posToImgPos(this.spotlight);
@@ -188,8 +188,8 @@ An image cropper made with Polymer.
         
       },
       _handleDown: function(e) {
-            let pos = this._getMousePos(e.detail.sourceEvent);
-            let d = Math.sqrt(Math.pow(pos.x - this.spotlight.x,2) + Math.pow(pos.y - this.spotlight.y,2));
+            var pos = this._getMousePos(e.detail.sourceEvent);
+            var d = Math.sqrt(Math.pow(pos.x - this.spotlight.x,2) + Math.pow(pos.y - this.spotlight.y,2));
             if (d < this.spotlight.radius && d > this.spotlight.radius - this.spotlight.indicatorWidth) {
               this.updateRadius = true;
               this.$.c.style.cursor = "ew-resize";
@@ -199,7 +199,7 @@ An image cropper made with Polymer.
             }
       },
       _handleTrack: function(e) {
-        let pos = null;
+        var pos = null;
         switch (e.detail.state) {
           case 'start':
           break;
@@ -213,7 +213,7 @@ An image cropper made with Polymer.
             if (this.isSpotlight) {
               
               
-              let d = Math.sqrt(Math.pow(pos.x - this.spotlight.x,2) + Math.pow(pos.y - this.spotlight.y,2));
+              var d = Math.sqrt(Math.pow(pos.x - this.spotlight.x,2) + Math.pow(pos.y - this.spotlight.y,2));
               if (this.updateRadius) {
                 this.updateRadius = true;
                 if (d + (0.5 * this.spotlight.indicatorWidth) > this.spotlight.indicatorWidth*2) {
@@ -235,9 +235,9 @@ An image cropper made with Polymer.
           
           // this.$.c.focus();
           // console.log(e.detail);
-          let pos = this._getMousePos(e.detail.sourceEvent);
+          var pos = this._getMousePos(e.detail.sourceEvent);
           if (this.isSpotlight) {
-            let d = Math.sqrt(Math.pow(pos.x - this.spotlight.x,2) + Math.pow(pos.y - this.spotlight.y,2)) ;
+            var d = Math.sqrt(Math.pow(pos.x - this.spotlight.x,2) + Math.pow(pos.y - this.spotlight.y,2)) ;
             if (d > this.spotlight.radius) {
               
               this.spotlight.x = pos.x;
@@ -264,7 +264,7 @@ An image cropper made with Polymer.
       },
       _handleMouseMove: function(e) {
         if (this.isSpotlight && !this.isMoving) {
-          let pos = this._getMousePos(e);
+          var pos = this._getMousePos(e);
           this.spotlight.indicatorAngle = Math.atan2((this.spotlight.y - pos.y),this.spotlight.x - pos.x );
           this._draw();
 
@@ -282,8 +282,8 @@ An image cropper made with Polymer.
         return false;
       },
       _srcChanged: function(nV, oV) {
-        let img = new Image();
-        let that = this;
+        var img = new Image();
+        var that = this;
         img.addEventListener('load', function() {
           that._img = img;
           that._imgData.wrh = img.width / img.height;
@@ -303,12 +303,12 @@ An image cropper made with Polymer.
       _draw: function() {
         if (!this._img) return;
         img = this._img;
-        let ctx = this.$.c.getContext("2d");
+        var ctx = this.$.c.getContext("2d");
         ctx.clearRect(0, 0, this.$.c.width, this.$.c.height);
         ctx.fillRect(0, 0, this.$.c.width, this.$.c.height);
       
-        let x = 0;
-        let y = 0;
+        var x = 0;
+        var y = 0;
         
         if (ctx.canvas.width > this._imgData.newWidth) {
           x = (ctx.canvas.width / 2) - (this._imgData.newWidth/2);
@@ -327,15 +327,15 @@ An image cropper made with Polymer.
           
       },
       _drawSelector: function() {
-          let ctx = this.$.c.getContext("2d");
+          var ctx = this.$.c.getContext("2d");
 
           ctx.globalAlpha=0.6;
           ctx.fillStyle = "#000";
           ctx.beginPath();
           ctx.rect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
-          let height = this.selector.bot - this.selector.top;
-          let width = this.selector.right - this.selector.left;
+          var height = this.selector.bot - this.selector.top;
+          var width = this.selector.right - this.selector.left;
           ctx.moveTo(this.selector.left, this.selector.top);
           ctx.lineTo(this.selector.left, this.selector.top+height);
           ctx.lineTo(this.selector.left+width, this.selector.top+height);
@@ -375,7 +375,7 @@ An image cropper made with Polymer.
 
       },
       _drawSpotlight: function() {
-        let ctx = this.$.c.getContext("2d");
+        var ctx = this.$.c.getContext("2d");
 
           ctx.globalAlpha=this.overlayOpacity;
           ctx.fillStyle = this.overlayColor;
@@ -389,10 +389,10 @@ An image cropper made with Polymer.
           ctx.fill();
           ctx.globalAlpha=1;
 
-          let x = this.spotlight.x - (this.spotlight.radius * Math.cos(this.spotlight.indicatorAngle));
-          let y = this.spotlight.y - (this.spotlight.radius * Math.sin(this.spotlight.indicatorAngle));
-          let x2 = this.spotlight.x - ((this.spotlight.radius-this.spotlight.indicatorWidth) * Math.cos(this.spotlight.indicatorAngle));
-          let y2 = this.spotlight.y - ((this.spotlight.radius-this.spotlight.indicatorWidth) * Math.sin(this.spotlight.indicatorAngle));
+          var x = this.spotlight.x - (this.spotlight.radius * Math.cos(this.spotlight.indicatorAngle));
+          var y = this.spotlight.y - (this.spotlight.radius * Math.sin(this.spotlight.indicatorAngle));
+          var x2 = this.spotlight.x - ((this.spotlight.radius-this.spotlight.indicatorWidth) * Math.cos(this.spotlight.indicatorAngle));
+          var y2 = this.spotlight.y - ((this.spotlight.radius-this.spotlight.indicatorWidth) * Math.sin(this.spotlight.indicatorAngle));
           
           ctx.beginPath();
           ctx.moveTo(x2, y2);
@@ -415,8 +415,8 @@ An image cropper made with Polymer.
        * Convenience function to set the x and y to the spotlight and selector 
        */
       _setPos: function (x, y) {
-          let width = this.selector.right-this.selector.left;
-          let height = this.selector.bot - this.selector.top;
+          var width = this.selector.right-this.selector.left;
+          var height = this.selector.bot - this.selector.top;
           this.selector.left = x - ((width)/2);
           this.selector.right = x + ((width)/2);
           this.selector.top = y - (height/2);
@@ -426,7 +426,7 @@ An image cropper made with Polymer.
           this.spotlight.y = y;
       },
       _getMousePos: function(evt) {
-        let rect = this.$.c.getBoundingClientRect();
+        var rect = this.$.c.getBoundingClientRect();
         scaleX = this.$.c.width / rect.width,    // relationship bitmap vs. element for X
         scaleY = this.$.c.height / rect.height;  // relationship bitmap vs. element for Y
 
@@ -440,7 +440,7 @@ An image cropper made with Polymer.
        * @returns {Boolean} Whether or not the mouse is inside the moveavle area of the spotlight
        */
       _isInSpotlight: function(pos) {
-        let d = Math.sqrt(Math.pow(pos.x - this.spotlight.x,2) + Math.pow(pos.y - this.spotlight.y,2));
+        var d = Math.sqrt(Math.pow(pos.x - this.spotlight.x,2) + Math.pow(pos.y - this.spotlight.y,2));
         return d < this.spotlight.radius - this.spotlight.indicatorWidth;
       },
       /**
@@ -448,7 +448,7 @@ An image cropper made with Polymer.
        * @returns {Boolean} Whether or not the mouse is inside the resizable indicator area of the spotlight
        */
       _isInSpotlightIndicator: function(pos) {
-        let d = Math.sqrt(Math.pow(pos.x - this.spotlight.x,2) + Math.pow(pos.y - this.spotlight.y,2));
+        var d = Math.sqrt(Math.pow(pos.x - this.spotlight.x,2) + Math.pow(pos.y - this.spotlight.y,2));
         return d < this.spotlight.radius && d > this.spotlight.radius - this.spotlight.indicatorWidth;
       }
 
