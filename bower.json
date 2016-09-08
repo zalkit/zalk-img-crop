@@ -2,6 +2,11 @@
   "name": "zalk-img-crop",
   "description": "An image cropper made with Polymer.",
   "main": "zalk-img-crop.html",
+  "keywords": [
+    "polymer","img","image","crop","cropper","cropping","img-crop","img-cropper",
+    "custom-element", "web-components", "js", "image-crop", "image-cropper", "zalk",
+    "zalkit"
+  ],
   "dependencies": {
     "polymer": "Polymer/polymer#^1.4.0",
     "iron-resizable-behavior": "PolymerElements/iron-resizable-behavior#^1.0.5"
