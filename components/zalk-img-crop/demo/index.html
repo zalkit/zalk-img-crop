@@ -1,0 +1,73 @@
+<!doctype html>
+<html>
+  <head>
+    <title>zalk-img-crop demo</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
+    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+
+    <link rel="import" href="../../iron-demo-helpers/demo-pages-shared-styles.html">
+    <link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
+
+    <link rel="import" href="../zalk-img-crop.html">
+
+    <style is="custom-style" include="demo-pages-shared-styles">
+    </style>
+  </head>
+  <body>
+    <div class="vertical-section-container centered">
+      <h3>Using spotlight</h3>
+      <demo-snippet>
+        <template>
+          <input type='file' onchange="changeSpotlight(this)" />
+          <button onclick="cropToSpotlight()">Crop</button>
+          <script type="text/javascript">
+            function changeSpotlight(elm) {
+              var reader  = new FileReader();
+              var file    = elm.files[0];
+              reader.addEventListener("load", function () {
+                document.getElementById("spotlight").src = reader.result;
+              }, false);
+
+              if (file) {
+                reader.readAsDataURL(file);
+              }
+            }
+
+            function cropToSpotlight() {
+              document.getElementById("spotlightCrop").src = document.getElementById("spotlight").crop();
+            }
+          </script>
+
+          <!-- The aspect ratio will be preserved. -->
+          <zalk-img-crop id="spotlight" style="width: 100%; height: 300px;" is-spotlight></zalk-img-crop>
+          <img id="spotlightCrop"/>
+        </template>
+      </demo-snippet>
+    </div>
+    <div class="vertical-section-container centered" >
+      <h3>Using a selector</h3>
+      <demo-snippet>
+        <template>
+          <input type='file' onchange="change(this)" />
+          <script type="text/javascript">
+            function change(elm) {
+              var reader  = new FileReader();
+              var file    = elm.files[0];
+              reader.addEventListener("load", function () {
+                document.getElementById("selector").src = reader.result;
+              }, false);
+
+              if (file) {
+                reader.readAsDataURL(file);
+              }
+            }
+          </script>
+          <!-- The aspect ratio will be preserved. -->
+          <zalk-img-crop id="selector" style="width: 100%; height: 300px;"></zalk-img-crop>
+        </template>
+      </demo-snippet>
+    </div>
+
+  </body>
+</html>

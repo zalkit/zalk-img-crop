@@ -1,0 +1,473 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../iron-resizable-behavior/iron-resizable-behavior.html">
+
+
+<!--
+`zalk-img-crop`
+An image cropper made with Polymer.
+
+@demo demo/index.html 
+-->
+
+<dom-module id="zalk-img-crop">
+  <template>
+    <style>
+      :host {
+        display: block;
+        overflow: hidden;
+        -webkit-transform: none !important;
+        transform: none !important;
+      }
+
+      :host:active {
+       
+      }
+
+      canvas {
+        width: 100%;
+        height: 100%;
+        -webkit-transform: none !important;
+        transform: none !important;
+      }
+      canvas#crop {
+        display: none;
+      }
+    </style>
+    <canvas id="c" content-editable="true" tabindex="0"></canvas>
+    <canvas id="crop"></canvas>
+  </template>
+
+  <script>
+    Polymer({
+
+      is: 'zalk-img-crop',
+      behaviors: [
+        Polymer.IronResizableBehavior
+      ],
+      properties: {
+        /**
+         * The selector object
+         */
+        selector: {
+          type: Object,
+          value: function () {
+            return {
+              left: 0,
+              top: 0,
+              bot: 100,
+              right: 100,
+              indicatorLength: 10
+            };
+          }
+        },
+        /**
+         * The spotlight object to be used when isSpotlight is set to true
+         */
+        spotlight: {
+          type: Object,
+          value: function () {
+            return {
+              radius: 50,
+              x: 100,
+              y: 100,
+              indicatorWidth: 20,
+              indicatorAngle: 0
+            };
+          }
+        },
+        /**
+         * Check to see if the spotlight should be used or the selector
+         */
+        isSpotlight: {
+          type: Boolean,
+          value: false
+        },
+        /**
+         * The source of the image to crop
+         */
+        src: {
+          type: String,
+          observer: '_srcChanged'
+        },
+        /**
+         * The opacity of the overlay surrounding the selector [0-1]
+         */
+        overlayOpacity: {
+          type: Number,
+          value: 0.4,
+          notify: true
+        },
+        /**
+         * The color of the overlay surrounding the selector [0-1]
+         */
+        overlayColor: {
+          type: String,
+          value: "#000",
+          notify: true
+        },
+        /**
+         * The scale factor to use in the canvas
+         */
+        scale: {
+          type: Number,
+          value: 1,
+          notify: true
+        },
+        /**
+         * Storage of important scale information of the image
+         */
+        _imgData: {
+          type: Object,
+          value: function() { return {} }
+        }
+      },
+
+      listeners: {
+        'iron-resize': '_onIronResize',
+        'c.down': '_handleDown',
+        'c.track': '_handleTrack',
+        'c.tap': '_handleTap',
+        'c.touchstart': '_handleTouchStart',
+        'c.scroll': '_handleScroll',
+        'c.wheel': '_handleWheel',
+        'c.mousemove': '_handleMouseMove',
+        'c.contextmenu': '_handleContextMenu'
+      },
+
+      _onIronResize: function() {
+        this.$.c.width = this.offsetWidth;
+        this.$.c.height = this.offsetHeight;
+        if (typeof this._img !== 'undefined') {
+          this._draw();
+        }
+      },
+      ready: function() {
+      },
+      /**
+       * Crops the image
+       * @returns {String} src - The data URL of the newly cropped image
+       */
+      crop: function() {
+        if (this.isSpotlight) {
+          return this._cropSpotlight();
+        } else {
+          return this._cropSelector();
+        }
+      },
+      _cropSpotlight: function() {
+        var x = Math.max(this.spotlight.x - this.spotlight.radius, 0);
+        var y = Math.max(this.spotlight.y - this.spotlight.radius, 0);
+        var d = this.spotlight.radius * 2;
+
+         if (this.$.c.width > this._imgData.newWidth) {
+          x-=(this.$.c.width - this._imgData.newWidth)/2;
+        }
+
+        if (this.$.c.height > this._imgData.newHeight) {
+          y-=(this.$.c.height - this._imgData.newHeight)/2;
+        }
+
+        if (x + d > this._img.width) {
+          x = this._img.width - d;
+        }
+        if (y + d > this._img.height) {
+          y = this._img.height - d;
+        }
+        
+
+        var dx = (d/this._imgData.newWidth) * this._img.width;
+        var dy = (d/this._imgData.newHeight) * this._img.height;
+        var txr = (x*this._img.width / this._imgData.newWidth);
+        var tyr = (y*this._img.height/ this._imgData.newHeight);
+        
+        var bxr = ((x+d+1)* Math.ceil(this._img.width/ this._imgData.newWidth)) - 1;
+        var byr = ((y+d+1)*Math.ceil(this._img.height/ this._imgData.newHeight)) -1;
+        
+        this.$.crop.width = bxr-txr;
+        this.$.crop.height = byr-tyr;
+        var ctx = this.$.crop.getContext('2d');
+        ctx.drawImage(this._img,txr,tyr,bxr-txr,bxr-txr,0,0,this.$.crop.width,this.$.crop.height)
+        return this.$.crop.toDataURL();
+        //this._posToImgPos(this.spotlight);
+        
+      },
+      _cropSelector: function() {
+        // TODO
+      },
+      /**
+       * Converts canvas scaled pos to original image pos
+       * @param {Object} pos - x,y value on the canvas
+       * @returns {Object} The x,y on the original image
+       */
+      _posToImgPos: function(pos) {
+        
+      },
+      _handleDown: function(e) {
+            var pos = this._getMousePos(e.detail.sourceEvent);
+            var d = Math.sqrt(Math.pow(pos.x - this.spotlight.x,2) + Math.pow(pos.y - this.spotlight.y,2));
+            if (d < this.spotlight.radius && d > this.spotlight.radius - this.spotlight.indicatorWidth) {
+              this.updateRadius = true;
+              this.$.c.style.cursor = "ew-resize";
+            } else if (d < this.spotlight.radius - this.spotlight.indicatorWidth) {
+              this.isMoving = true;
+              this.$.c.style.cursor = "move";
+            }
+      },
+      _handleTrack: function(e) {
+        var pos = null;
+        switch (e.detail.state) {
+          case 'start':
+          break;
+          case 'end':
+          this.updateRadius = false;
+          this.isMoving = false;
+          this.$.c.style.cursor = "auto";
+          break;
+          case 'track':
+            pos = this._getMousePos(e.detail.sourceEvent);
+            if (this.isSpotlight) {
+              
+              
+              var d = Math.sqrt(Math.pow(pos.x - this.spotlight.x,2) + Math.pow(pos.y - this.spotlight.y,2));
+              if (this.updateRadius) {
+                this.updateRadius = true;
+                if (d + (0.5 * this.spotlight.indicatorWidth) > this.spotlight.indicatorWidth*2) {
+                  this.spotlight.radius = d + (0.5 * this.spotlight.indicatorWidth);
+                  this._draw();
+                }
+              } else if (this.isMoving) {
+                this.spotlight.x += e.detail.ddx;
+                this.spotlight.y += e.detail.ddy;
+                this._draw();
+              }
+          }
+          
+          //
+          break;
+        }
+      },
+      _handleTap: function(e) {
+          
+          // this.$.c.focus();
+          // console.log(e.detail);
+          var pos = this._getMousePos(e.detail.sourceEvent);
+          if (this.isSpotlight) {
+            var d = Math.sqrt(Math.pow(pos.x - this.spotlight.x,2) + Math.pow(pos.y - this.spotlight.y,2)) ;
+            if (d > this.spotlight.radius) {
+              
+              this.spotlight.x = pos.x;
+              this.spotlight.y = pos.y;
+              this._draw();
+            } 
+          } else {
+            this._setPos(pos.x, pos.y);
+            this._draw();
+          }
+
+         // this._setPos(pos.x, pos.y);
+          
+          //this._draw(this.img);
+      },
+      _handleTouchStart: function(e) {
+          e.preventDefault();
+          console.log(e);
+      },
+      _handleWheel: function(e) {
+          e.preventDefault();
+          
+          console.log(e);
+      },
+      _handleMouseMove: function(e) {
+        if (this.isSpotlight && !this.isMoving) {
+          var pos = this._getMousePos(e);
+          this.spotlight.indicatorAngle = Math.atan2((this.spotlight.y - pos.y),this.spotlight.x - pos.x );
+          this._draw();
+
+          if (this._isInSpotlight(pos)) {
+            this.$.c.style.cursor = "move";
+          } else if (this._isInSpotlightIndicator(pos)) {
+            this.$.c.style.cursor = "ew-resize";
+          } else {
+            this.$.c.style.cursor = "auto";
+          }
+        }
+      },
+      _handleContextMenu: function(e) {
+        e.preventDefault();
+        return false;
+      },
+      _srcChanged: function(nV, oV) {
+        var img = new Image();
+        var that = this;
+        img.addEventListener('load', function() {
+          that._img = img;
+          that._imgData.wrh = img.width / img.height;
+          that._imgData.newWidth = that.$.c.width;
+          that._imgData.newHeight = that._imgData.newWidth / that._imgData.wrh;
+          if (that._imgData.newHeight > that.$.c.height) {
+              that._imgData.newHeight = that.$.c.height;
+              that._imgData.newWidth = that._imgData.newHeight * that._imgData.wrh;
+          }
+    
+          that._draw();
+          
+        });
+
+        img.src = nV;
+      },
+      _draw: function() {
+        if (!this._img) return;
+        img = this._img;
+        var ctx = this.$.c.getContext("2d");
+        ctx.clearRect(0, 0, this.$.c.width, this.$.c.height);
+        ctx.fillRect(0, 0, this.$.c.width, this.$.c.height);
+      
+        var x = 0;
+        var y = 0;
+        
+        if (ctx.canvas.width > this._imgData.newWidth) {
+          x = (ctx.canvas.width / 2) - (this._imgData.newWidth/2);
+        }
+
+        if (ctx.canvas.height > this._imgData.newHeight) {
+          y = (ctx.canvas.height / 2) - (this._imgData.newHeight/2);
+        }
+
+        ctx.drawImage(img, x,y,this._imgData.newWidth,this._imgData.newHeight);
+        if (!this.isSpotlight) {
+          this._drawSelector();
+        } else {
+          this._drawSpotlight();
+        }
+          
+      },
+      _drawSelector: function() {
+          var ctx = this.$.c.getContext("2d");
+
+          ctx.globalAlpha=0.6;
+          ctx.fillStyle = "#000";
+          ctx.beginPath();
+          ctx.rect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+          var height = this.selector.bot - this.selector.top;
+          var width = this.selector.right - this.selector.left;
+          ctx.moveTo(this.selector.left, this.selector.top);
+          ctx.lineTo(this.selector.left, this.selector.top+height);
+          ctx.lineTo(this.selector.left+width, this.selector.top+height);
+          ctx.lineTo(this.selector.left+width, this.selector.top);
+          ctx.fill();
+          ctx.globalAlpha=1;
+
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(this.selector.left,this.selector.top);
+          ctx.lineTo(this.selector.left,this.selector.top+this.selector.indicatorLength);
+          ctx.stroke();
+          ctx.moveTo(this.selector.left,this.selector.top);
+          ctx.lineTo(this.selector.left+this.selector.indicatorLength,this.selector.top);
+          ctx.stroke();
+
+          ctx.moveTo(this.selector.right,this.selector.top);
+          ctx.lineTo(this.selector.right,this.selector.top+this.selector.indicatorLength);
+          ctx.stroke();
+          ctx.moveTo(this.selector.right,this.selector.top);
+          ctx.lineTo(this.selector.right-this.selector.indicatorLength,this.selector.top);
+          ctx.stroke();
+
+          ctx.moveTo(this.selector.left,this.selector.bot);
+          ctx.lineTo(this.selector.left,this.selector.bot-this.selector.indicatorLength);
+          ctx.stroke();
+          ctx.moveTo(this.selector.left,this.selector.bot);
+          ctx.lineTo(this.selector.left+this.selector.indicatorLength,this.selector.bot);
+          ctx.stroke();
+
+          ctx.moveTo(this.selector.right,this.selector.bot);
+          ctx.lineTo(this.selector.right,this.selector.bot-this.selector.indicatorLength);
+          ctx.stroke();
+          ctx.moveTo(this.selector.right,this.selector.bot);
+          ctx.lineTo(this.selector.right-this.selector.indicatorLength,this.selector.bot);
+          ctx.stroke();
+
+      },
+      _drawSpotlight: function() {
+        var ctx = this.$.c.getContext("2d");
+
+          ctx.globalAlpha=this.overlayOpacity;
+          ctx.fillStyle = this.overlayColor;
+          ctx.beginPath();
+          ctx.rect(0, 0, ctx.canvas.width, ctx.canvas.height);
+          
+          // ctx.lineTo(this.selectorX, this.selectorY);
+
+
+          ctx.arc(this.spotlight.x, this.spotlight.y, this.spotlight.radius, 0, 2 * Math.PI, true);
+          ctx.fill();
+          ctx.globalAlpha=1;
+
+          var x = this.spotlight.x - (this.spotlight.radius * Math.cos(this.spotlight.indicatorAngle));
+          var y = this.spotlight.y - (this.spotlight.radius * Math.sin(this.spotlight.indicatorAngle));
+          var x2 = this.spotlight.x - ((this.spotlight.radius-this.spotlight.indicatorWidth) * Math.cos(this.spotlight.indicatorAngle));
+          var y2 = this.spotlight.y - ((this.spotlight.radius-this.spotlight.indicatorWidth) * Math.sin(this.spotlight.indicatorAngle));
+          
+          ctx.beginPath();
+          ctx.moveTo(x2, y2);
+          ctx.lineTo(x, y);
+          ctx.lineWidth = 5;
+          ctx.strokeStyle = "#000";
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.arc(this.spotlight.x, this.spotlight.y, this.spotlight.radius, 0, 2 * Math.PI);
+          //ctx.arc(this.spotlight.x, this.spotlight.y, this.spotlight.radius-this.spotlight.indicatorWidth, 0, 2 * Math.PI);
+          ctx.lineWidth = 1;
+
+          
+          
+          ctx.stroke();
+          
+          ctx.strokeStyle = "#000";
+    },
+      /**
+       * Convenience function to set the x and y to the spotlight and selector 
+       */
+      _setPos: function (x, y) {
+          var width = this.selector.right-this.selector.left;
+          var height = this.selector.bot - this.selector.top;
+          this.selector.left = x - ((width)/2);
+          this.selector.right = x + ((width)/2);
+          this.selector.top = y - (height/2);
+          this.selector.bot = y + (height/2);
+          
+          this.spotlight.x = x;
+          this.spotlight.y = y;
+      },
+      _getMousePos: function(evt) {
+        var rect = this.$.c.getBoundingClientRect();
+        scaleX = this.$.c.width / rect.width,    // relationship bitmap vs. element for X
+        scaleY = this.$.c.height / rect.height;  // relationship bitmap vs. element for Y
+
+        return {
+          x: (evt.clientX - rect.left) * scaleX,   // scale mouse coordinates after they have
+          y: (evt.clientY - rect.top) * scaleY     // been adjusted to be relative to element
+        };
+      },
+      /**
+       * @params {Object} pos - The mouse position returned by _getMousePos()
+       * @returns {Boolean} Whether or not the mouse is inside the moveavle area of the spotlight
+       */
+      _isInSpotlight: function(pos) {
+        var d = Math.sqrt(Math.pow(pos.x - this.spotlight.x,2) + Math.pow(pos.y - this.spotlight.y,2));
+        return d < this.spotlight.radius - this.spotlight.indicatorWidth;
+      },
+      /**
+       * @params {Object} pos - The mouse position returned by _getMousePos()
+       * @returns {Boolean} Whether or not the mouse is inside the resizable indicator area of the spotlight
+       */
+      _isInSpotlightIndicator: function(pos) {
+        var d = Math.sqrt(Math.pow(pos.x - this.spotlight.x,2) + Math.pow(pos.y - this.spotlight.y,2));
+        return d < this.spotlight.radius && d > this.spotlight.radius - this.spotlight.indicatorWidth;
+      }
+
+    });
+  </script>
+</dom-module>
