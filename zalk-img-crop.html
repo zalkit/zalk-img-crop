@@ -159,19 +159,34 @@ An image cropper made with Polymer.
         var y = Math.max(this.spotlight.y - this.spotlight.radius, 0);
         var d = this.spotlight.radius * 2;
 
+         if (this.$.c.width > this._imgData.newWidth) {
+          x-=(this.$.c.width - this._imgData.newWidth)/2;
+        }
+
+        if (this.$.c.height > this._imgData.newHeight) {
+          y-=(this.$.c.height - this._imgData.newHeight)/2;
+        }
+
         if (x + d > this._img.width) {
           x = this._img.width - d;
         }
         if (y + d > this._img.height) {
           y = this._img.height - d;
         }
+        
 
-        var xr = this._img.width / this._imgData.newWidth;
-        var yr = this._img.height / this._imgData.newHeight;
-        this.$.crop.width = d;
-        this.$.crop.height = d;
+        var dx = (d/this._imgData.newWidth) * this._img.width;
+        var dy = (d/this._imgData.newHeight) * this._img.height;
+        var txr = (x*this._img.width / this._imgData.newWidth);
+        var tyr = (y*this._img.height/ this._imgData.newHeight);
+        
+        var bxr = ((x+d+1)* Math.ceil(this._img.width/ this._imgData.newWidth)) - 1;
+        var byr = ((y+d+1)*Math.ceil(this._img.height/ this._imgData.newHeight)) -1;
+        
+        this.$.crop.width = bxr-txr;
+        this.$.crop.height = byr-tyr;
         var ctx = this.$.crop.getContext('2d');
-        ctx.drawImage(this._img, x*xr,y*yr,d,d,0,0,this.$.crop.width,this.$.crop.height)
+        ctx.drawImage(this._img,txr,tyr,bxr-txr,bxr-txr,0,0,this.$.crop.width,this.$.crop.height)
         return this.$.crop.toDataURL();
         //this._posToImgPos(this.spotlight);
         
@@ -406,11 +421,15 @@ An image cropper made with Polymer.
           //ctx.arc(this.spotlight.x, this.spotlight.y, this.spotlight.radius-this.spotlight.indicatorWidth, 0, 2 * Math.PI);
           ctx.lineWidth = 1;
 
-          ctx.strokeStyle = "#000";
+          
           
           ctx.stroke();
-
-      },
+          ctx.strokeStyle = "#F00";
+          ctx.rect(this.spotlight.x-this.spotlight.radius,this.spotlight.y-this.spotlight.radius,this.spotlight.radius*2,this.spotlight.radius*2);
+          
+          ctx.stroke();
+          ctx.strokeStyle = "#000";
+    },
       /**
        * Convenience function to set the x and y to the spotlight and selector 
        */
