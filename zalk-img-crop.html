@@ -47,6 +47,7 @@ An image cropper made with Polymer.
       properties: {
         /**
          * The selector object
+         * The center will be auto set to the center of the image on src change
          */
         selector: {
           type: Object,
@@ -62,6 +63,7 @@ An image cropper made with Polymer.
         },
         /**
          * The spotlight object to be used when isSpotlight is set to true
+         * The center will be auto set to the center of the image on src change
          */
         spotlight: {
           type: Object,
@@ -308,7 +310,21 @@ An image cropper made with Polymer.
               that._imgData.newHeight = that.$.c.height;
               that._imgData.newWidth = that._imgData.newHeight * that._imgData.wrh;
           }
-    
+          
+          var x   = (that.$.c.width / 2);
+          var y   = (that.$.c.height / 2) ;
+
+          that.spotlight.x = x;
+          that.spotlight.y = y;
+
+          that.spotlight.x = x;
+          that.spotlight.y = y;
+
+          that.selector.left = x - 50;
+          that.selector.right = x + 50;
+          that.selector.top = y - 50;
+          that.selector.bot = y + 50;
+
           that._draw();
           
         });
